@@ -159,7 +159,19 @@ $ python create_episode_module.py --qpos path/to/qpos.npy --qvel path/to/qvel.np
 ### 학습
 ```bash
 # 사용예시
-$ python3 imitate_episodes.py --task_name aloha_mobile_cabinet --ckpt_dir ckpt/ --policy_class ACT --kl_weight 10 --chunk_size 100 --hidden_dim 512 --batch_size 8 --dim_feedforward 3200  --lr 1e-5 --seed 0 --num_steps 2000 --onscreen_render
+$ python3 imitate_episodes.py \
+--task_name aloha_mobile_cabinet \
+--ckpt_dir ckpt/ \
+--policy_class ACT \
+--kl_weight 10 \
+--chunk_size 100 \
+--hidden_dim 512 \
+--batch_size 8 \
+--dim_feedforward 3200  \
+--lr 1e-5 \
+--seed 0 \
+--num_steps 2000 \
+--onscreen_render
 ```
 
 ### 변경점
