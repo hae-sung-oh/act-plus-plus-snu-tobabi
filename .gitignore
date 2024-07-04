@@ -6,6 +6,8 @@ data
 data_local
 .vscode
 _wandb
+ckpt
+test.ipynb
 
 **/.DS_Store
 
