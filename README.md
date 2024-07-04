@@ -96,7 +96,17 @@ create_episode(
 ```
 ```bash
 # 터미널 커맨드
-$ python create_episode_module.py --qpos path/to/qpos.npy --qvel path/to/qvel.npy --effort path/to/effort.npy --action path/to/action.npy --base_action path/to/base_action.npy --dataset_dir path/to/dataset_dir --dataset_name my_dataset --overwrite --no_compress
+$ python create_episode_module.py \
+--qpos path/to/qpos.npy \
+--qvel path/to/qvel.npy \
+--effort path/to/effort.npy \
+--action path/to/action.npy \
+--base_action path/to/base_action.npy \
+--camera_names cam_name_1 cam_name_2 cam_name_3 \
+--dataset_dir path/to/dataset_dir \
+--dataset_name my_dataset \
+--overwrite \
+--no_compress
 
 ```
 
