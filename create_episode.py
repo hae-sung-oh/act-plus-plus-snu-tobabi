@@ -76,7 +76,7 @@ def create_episode(
     dataset_dir: str,
     dataset_name: str,
     overwrite: bool = False,
-    compress: bool = True,
+    no_compress: bool = False,
 ):
     """
     Creates a Mobile-Aloha dataset for n timesteps, containing observations and actions.
@@ -119,8 +119,8 @@ def create_episode(
             - Name of the dataset.
         - overwrite (bool):
             - Whether to overwrite existing dataset. Default is False.
-        - compress (bool):
-            - Whether to compress the dataset. Default is True.
+        - no_compress (bool):
+            - Whether to compress the dataset. Default is False.
 
     Output:
         - A .hdf5 file for an episode.
@@ -173,7 +173,7 @@ def create_episode(
     for i, cam_name in enumerate(camera_names):
         data_dict[f"/observations/images/{cam_name}"] = images[i]
 
-    if compress:
+    if not no_compress:
         # JPEG compression
         t0 = time.time()
         encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50]  # tried as low as 20, seems fine
@@ -208,11 +208,11 @@ def create_episode(
     t0 = time.time()
     with h5py.File(dataset_path + ".hdf5", "w", rdcc_nbytes=1024**2 * 2) as root:
         root.attrs["sim"] = False
-        root.attrs["compress"] = compress
+        root.attrs["compress"] = not no_compress
         obs = root.create_group("observations")
         image = obs.create_group("images")
         for cam_name in camera_names:
-            if compress:
+            if not no_compress:
                 _ = image.create_dataset(
                     cam_name,
                     (max_timesteps, padded_size),
@@ -236,7 +236,7 @@ def create_episode(
         for name, array in data_dict.items():
             root[name][...] = array
 
-        if compress:
+        if not no_compress:
             _ = root.create_dataset("compress_len", (len(camera_names), max_timesteps))
             root["/compress_len"][...] = compressed_len
 
@@ -258,7 +258,7 @@ def main():
     parser.add_argument("--dataset_dir", type=str, required=True, help="Directory where the dataset will be stored.")
     parser.add_argument("--dataset_name", type=str, required=True, help="Name of the dataset.")
     parser.add_argument("--overwrite", action="store_false", help="Whether to overwrite existing dataset.")
-    parser.add_argument("--compress", action="store_true", help="Whether to compress the dataset.")
+    parser.add_argument("--no_compress", action="store_false", help="Whether to compress the dataset.")
 
     args = parser.parse_args()
 
@@ -274,7 +274,7 @@ def main():
         dataset_dir=args.dataset_dir,
         dataset_name=args.dataset_name,
         overwrite=args.overwrite,
-        compress=args.compress,
+        no_compress=args.no_compress,
     )
 
 
