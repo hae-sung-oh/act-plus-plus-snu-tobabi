@@ -166,7 +166,7 @@ def main(args):
     expr_name = ckpt_dir.split("/")[-1]
     if not is_eval:
         # wandb.init(project="mobile-aloha2", reinit=True, entity="mobile-aloha2", name=expr_name)
-        wandb.init(project="mobile-aloha2", reinit=True, entity="haesung_oh", name=expr_name)
+        wandb.init(project="mobile-aloha2", reinit=True, entity=os.getenv("WANDB_USER_NAME"), name=expr_name)
         wandb.config.update(config)
     with open(config_path, "wb") as f:
         pickle.dump(config, f)
@@ -438,9 +438,7 @@ def eval_bc(config, ckpt_name, save_episode=True, num_rollouts=50):
                         # if use_actuator_net:
                         #     collect_base_action(all_actions, norm_episode_all_base_actions)
                         if real_robot:
-                            all_actions = torch.cat(
-                                [all_actions[:, :-BASE_DELAY, :-2], all_actions[:, BASE_DELAY:, -2:]], dim=2
-                            )
+                            all_actions = torch.cat([all_actions[:, :-BASE_DELAY, :-2], all_actions[:, BASE_DELAY:, -2:]], dim=2)
                     if temporal_agg:
                         all_time_actions[[t], t : t + num_queries] = all_actions
                         actions_for_curr_step = all_time_actions[:, t]
@@ -462,9 +460,7 @@ def eval_bc(config, ckpt_name, save_episode=True, num_rollouts=50):
                         # if use_actuator_net:
                         #     collect_base_action(all_actions, norm_episode_all_base_actions)
                         if real_robot:
-                            all_actions = torch.cat(
-                                [all_actions[:, :-BASE_DELAY, :-2], all_actions[:, BASE_DELAY:, -2:]], dim=2
-                            )
+                            all_actions = torch.cat([all_actions[:, :-BASE_DELAY, :-2], all_actions[:, BASE_DELAY:, -2:]], dim=2)
                     raw_action = all_actions[:, t % query_frequency]
                 elif config["policy_class"] == "CNNMLP":
                     raw_action = policy(qpos, curr_image)
@@ -515,18 +511,14 @@ def eval_bc(config, ckpt_name, save_episode=True, num_rollouts=50):
                 # time.sleep(max(0, DT - duration - culmulated_delay))
                 if duration >= DT:
                     culmulated_delay += duration - DT
-                    print(
-                        f"Warning: step duration: {duration:.3f} s at step {t} longer than DT: {DT} s, culmulated delay: {culmulated_delay:.3f} s"
-                    )
+                    print(f"Warning: step duration: {duration:.3f} s at step {t} longer than DT: {DT} s, culmulated delay: {culmulated_delay:.3f} s")
                 # else:
                 #     culmulated_delay = max(0, culmulated_delay - (DT - duration))
 
             print(f"Avg fps {max_timesteps / (time.time() - time0)}")
             plt.close()
         if real_robot:
-            move_grippers(
-                [env.puppet_bot_left, env.puppet_bot_right], [PUPPET_GRIPPER_JOINT_OPEN] * 2, move_time=0.5
-            )  # open
+            move_grippers([env.puppet_bot_left, env.puppet_bot_right], [PUPPET_GRIPPER_JOINT_OPEN] * 2, move_time=0.5)  # open
             # save qpos_history_raw
             log_id = get_auto_index(ckpt_dir)
             np.save(os.path.join(ckpt_dir, f"qpos_{log_id}.npy"), qpos_history_raw)
@@ -547,9 +539,7 @@ def eval_bc(config, ckpt_name, save_episode=True, num_rollouts=50):
         episode_returns.append(episode_return)
         episode_highest_reward = np.max(rewards)
         highest_rewards.append(episode_highest_reward)
-        print(
-            f"Rollout {rollout_id}\n{episode_return=}, {episode_highest_reward=}, {env_max_reward=}, Success: {episode_highest_reward==env_max_reward}"
-        )
+        print(f"Rollout {rollout_id}\n{episode_return=}, {episode_highest_reward=}, {env_max_reward=}, Success: {episode_highest_reward==env_max_reward}")
 
         # if save_episode:
         #     save_videos(image_list, DT, video_path=os.path.join(ckpt_dir, f'video{rollout_id}.mp4'))
@@ -595,11 +585,7 @@ def train_bc(train_dataloader, val_dataloader, config):
 
     policy = make_policy(policy_class, policy_config)
     if config["load_pretrain"]:
-        loading_status = policy.deserialize(
-            torch.load(
-                os.path.join("/home/zfu/interbotix_ws/src/act/ckpts/pretrain_all", "policy_step_50000_seed_0.ckpt")
-            )
-        )
+        loading_status = policy.deserialize(torch.load(os.path.join("/home/zfu/interbotix_ws/src/act/ckpts/pretrain_all", "policy_step_50000_seed_0.ckpt")))
         print(f"loaded! {loading_status}")
     if config["resume_ckpt_path"] is not None:
         loading_status = policy.deserialize(torch.load(config["resume_ckpt_path"]))
@@ -697,15 +683,11 @@ if __name__ == "__main__":
     parser.add_argument("--lr", action="store", type=float, help="lr", required=True)
     parser.add_argument("--load_pretrain", action="store_true", default=False)
     parser.add_argument("--eval_every", action="store", type=int, default=500, help="eval_every", required=False)
-    parser.add_argument(
-        "--validate_every", action="store", type=int, default=500, help="validate_every", required=False
-    )
+    parser.add_argument("--validate_every", action="store", type=int, default=500, help="validate_every", required=False)
     parser.add_argument("--save_every", action="store", type=int, default=500, help="save_every", required=False)
     parser.add_argument("--resume_ckpt_path", action="store", type=str, help="resume_ckpt_path", required=False)
     parser.add_argument("--skip_mirrored_data", action="store_true")
-    parser.add_argument(
-        "--actuator_network_dir", action="store", type=str, help="actuator_network_dir", required=False
-    )
+    parser.add_argument("--actuator_network_dir", action="store", type=str, help="actuator_network_dir", required=False)
     parser.add_argument("--history_len", action="store", type=int)
     parser.add_argument("--future_len", action="store", type=int)
     parser.add_argument("--prediction_len", action="store", type=int)
